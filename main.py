@@ -2,6 +2,7 @@
 import heapq
 import copy
 import time
+import numpy as np
 
 # for the board state
 class Puzzle_Board:
@@ -77,11 +78,86 @@ class Puzzle_Board:
         for row in self.board: 
             print(*row)
 
-def main():
-    puzzle_type = input("Welcome to My 8 puzzle solver! Please input '1' for a default puzzle and '2' to input your own puzzle.")
+
+# for nodes in the algorithm
+class Node:
+    def __init__(self, puzzle, g_n, h_n):
+        self.puzzle = puzzle
+        self.g_n = g_n # path cost
+        self.h_n = h_n # heuristic cost
+        self.f_n = g_n + h_n  # total cost
+
+def misplaced_tile(puzzle):
+    goal_state = [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 0]
+    ]
+
+    diff_matrix = goal_state != puzzle
+
+    # not inlcuding blank tile
+    diff_matrix[puzzle == 0] = False
+
+    # sum the True's to get number of misplaced tiles
+    misplaced_tiles = np.sum(diff_matrix)
+
+    # set h(n) = misplaced tiles
+    return(misplaced_tiles)
+
+def manhattan_distance(puzzle):
+    goal_state = [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 0]
+    ]
+
+    distance = 0
+
+    for i in range(3):
+        for j in range(3):
+            if puzzle.board[i][j] != 0:
+                distance += (abs(goal_state[i][0] - puzzle.board[j][0]) + abs(goal_state[i][1] - puzzle.board[j][1]))
+
+    return distance
+
+# general search following pseudocode from class
+def general_search(problem, algorithm):
+    # nodes = make_queue(make_node(problem.initial_state))
+    if algorithm == 1:
+        h_n = 0 # h(n) = 0 for UCS
+    elif algorithm == 2:
+        h_n = misplaced_tile(problem) # set h(n) for A star with misplaced tile heuristic
+    elif algorithm == 3:
+        h_n = manhattan(problem) # set h(n) for A star with manhattan distance heuristic
+
+    initial_node = Node(problem, 0, h_n) 
+    pq = [initial_node]
+
+    while pq:
+        # if empty(nodes) then return "failure"
+        if len(pq) == 0:
+            return "failure"
+        
+        #node = remove_front(nodes)
+        curr_node = heapq.heappop(pq)
+
+        # if problem.goal_test(node.state) succeeds then return node
+        if problem.is_goal_state(curr_node.puzzle):
+            return curr_node
+        
+        # nodes = QUEUEING FUNCTION(nodes, EXPAND(node, problem.OPERATORS))
+        children_nodes = problem.get_children(curr_node.puzzle)
+        pq = queueing_function(pq, children_nodes)
+
     return
 
 
+
+
+def main():
+    puzzle_type = input("Welcome to My 8 puzzle solver! Please input '1' for a default puzzle or input '2' to enter your own puzzle.")
+    return
 
 if __name__ == "__main__":
     main()
