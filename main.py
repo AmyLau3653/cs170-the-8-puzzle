@@ -36,12 +36,13 @@ class Puzzle_Board:
 
         # only move up if blank is not in the top row
         if blank_row > 0:
+            # make copy of puzzle board
+            new_board = copy.deepcopy(self.board)
             # assign number to blank tile spot
-            self.board[blank_row][blank_col] = self.board[blank_row - 1][blank_col]
+            new_board[blank_row][blank_col] = new_board[blank_row - 1][blank_col]
             # assign blank tile to 0
-            self.board[blank_row - 1][blank_col] = 0
-            # update row of blank_row
-            self.blank_row -= 1
+            new_board[blank_row - 1][blank_col] = 0
+            return Puzzle_Board(new_board)
 
     # move blank tile down
     def blank_down(self):
@@ -49,9 +50,10 @@ class Puzzle_Board:
 
         # only move down if blank is not in the bottom row
         if blank_row < 2:
-            self.board[blank_row][blank_col] = self.board[blank_row + 1][blank_col]
-            self.board[blank_row + 1][blank_col] = 0
-            self.blank_row += 1
+            new_board = copy.deepcopy(self.board)
+            new_board[blank_row][blank_col] = new_board[blank_row + 1][blank_col]
+            new_board[blank_row + 1][blank_col] = 0
+            return Puzzle_Board(new_board)
 
     # move blank tile left
     def blank_left(self):
@@ -59,18 +61,20 @@ class Puzzle_Board:
 
         # only move left if blank is not in the first column
         if blank_col > 0:
-            self.board[blank_row][blank_col] = self.board[blank_row][blank_col - 1]
-            self.board[blank_row][blank_col - 1] = 0
-            self.blank_col -= 1
+            new_board = copy.deepcopy(self.board)
+            new_board[blank_row][blank_col] = new_board[blank_row][blank_col - 1]
+            new_board[blank_row][blank_col - 1] = 0
+            return Puzzle_Board(new_board)
 
     # move blank tile right
     def blank_right(self):
         blank_row, blank_col = self.blank_row, self.blank_col
         # only move right if blank is not in the last column
         if blank_col < 2:
-            self.board[blank_row][blank_col] = self.board[blank_row][blank_col + 1]
-            self.board[blank_row][blank_col + 1] = 0
-            self.blank_col += 1
+            new_board = copy.deepcopy(self.board)
+            new_board[blank_row][blank_col] = new_board[blank_row][blank_col + 1]
+            new_board[blank_row][blank_col + 1] = 0
+            return Puzzle_Board(new_board)
     
     # print out the board
     # source: https://www.quora.com/How-do-you-print-row-wise-in-Python
@@ -87,17 +91,22 @@ class Node:
         self.h_n = h_n # heuristic cost
         self.f_n = g_n + h_n  # total cost
 
-def misplaced_tile(puzzle):
-    goal_state = [
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 0]
-    ]
+    def __lt__(self, other):
+        return self.f_n < other.f_n
 
-    diff_matrix = goal_state != puzzle
+# calculate misplaced tile heuristic
+def misplaced_tile(board):
+    goal_state = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
+    
+    # change goal state and board to np array
+    board_np = np.array(board)
+    goal_state_np = np.array(goal_state)
+
+    # get difference matrix
+    diff_matrix = goal_state_np != board_np
 
     # not inlcuding blank tile
-    diff_matrix[puzzle == 0] = False
+    diff_matrix[board_np == 0] = False
 
     # sum the True's to get number of misplaced tiles
     misplaced_tiles = np.sum(diff_matrix)
@@ -105,7 +114,8 @@ def misplaced_tile(puzzle):
     # set h(n) = misplaced tiles
     return(misplaced_tiles)
 
-def manhattan_distance(puzzle):
+# calculate manhattan distance heuristic
+def manhattan_distance(board):
     goal_state = [
         [1, 2, 3],
         [4, 5, 6],
@@ -116,20 +126,43 @@ def manhattan_distance(puzzle):
 
     for i in range(3):
         for j in range(3):
-            if puzzle.board[i][j] != 0:
-                distance += (abs(goal_state[i][0] - puzzle.board[j][0]) + abs(goal_state[i][1] - puzzle.board[j][1]))
+            if board[i][j] != 0:
+                distance += (abs(goal_state[i][0] - board[j][0]) + abs(goal_state[i][1] - board[j][1]))
 
     return distance
+
+# find children nodes
+def get_children(puzzle):
+    # children = []
+    
+    # for i in range(4):
+    #     if puzzle.blank_up():
+    #         children.append(puzzle.blank_up())
+    #     if puzzle.blank_down():
+    #         children.append(puzzle.blank_down())
+    #     if puzzle.blank_left():
+    #         children.append(puzzle.blank_left())
+    #     if puzzle.blank_right():
+    #         children.append(puzzle.blank_right())
+    
+    # return children
+    
+    children = []
+    moves = [puzzle.blank_up(), puzzle.blank_down(), puzzle.blank_left(), puzzle.blank_right()]
+    for move in moves:
+        if move:
+            children.append(move)
+    return children
 
 # general search following pseudocode from class
 def general_search(problem, algorithm):
     # nodes = make_queue(make_node(problem.initial_state))
-    if algorithm == 1:
+    if algorithm == '1':
         h_n = 0 # h(n) = 0 for UCS
-    elif algorithm == 2:
-        h_n = misplaced_tile(problem) # set h(n) for A star with misplaced tile heuristic
-    elif algorithm == 3:
-        h_n = manhattan(problem) # set h(n) for A star with manhattan distance heuristic
+    elif algorithm == '2':
+        h_n = misplaced_tile(problem.board) # set h(n) for A star with misplaced tile heuristic
+    elif algorithm == '3':
+        h_n = manhattan_distance(problem.board) # set h(n) for A star with manhattan distance heuristic
 
     initial_node = Node(problem, 0, h_n) 
     pq = [initial_node]
@@ -143,21 +176,65 @@ def general_search(problem, algorithm):
         curr_node = heapq.heappop(pq)
 
         # if problem.goal_test(node.state) succeeds then return node
-        if problem.is_goal_state(curr_node.puzzle):
+        if curr_node.puzzle.is_goal_state():
             return curr_node
         
         # nodes = QUEUEING FUNCTION(nodes, EXPAND(node, problem.OPERATORS))
-        children_nodes = problem.get_children(curr_node.puzzle)
-        pq = queueing_function(pq, children_nodes)
+        children_nodes = get_children(curr_node.puzzle)
+        for child in children_nodes:
+            # g_n is cost 1 for all algorithms
+            g_n = curr_node.g_n + 1  
+            # get heuristic for given algorithm, 0 for UCS
+            if algorithm == '1':
+                    h_n = 0 # h(n) = 0 for UCS
+            elif algorithm == '2':
+                h_n = misplaced_tile(problem.board) # set h(n) for A star with misplaced tile heuristic
+            elif algorithm == '3':
+                h_n = manhattan_distance(problem.board) # set h(n) for A star with manhattan distance heuristic
+            child_node = Node(child, g_n, h_n)
+            # push child node to pq
+            heapq.heappush(pq, child_node)
 
     return
-
-
-
 
 def main():
-    puzzle_type = input("Welcome to My 8 puzzle solver! Please input '1' for a default puzzle or input '2' to enter your own puzzle.")
-    return
+    puzzle_type = input("Welcome to My 8 puzzle solver! Please input '1' for a default puzzle or input '2' to enter your own puzzle.\n")
+
+    if puzzle_type == '1':
+        puzzle_level = input("Default puzzle selected! Please select a difficulty 1 (easy) to 7 (hard)\n")
+
+        # puzzles from project instructions
+        puzzles = {
+            '1': [[1, 2, 3], [4, 5, 6], [0, 7, 8]],
+            '2': [[1, 2, 3], [5, 0, 6], [4, 7, 8]],
+            '3': [[1, 3, 6], [5, 0, 2], [4, 7, 8]],
+            '4': [[1, 3, 6], [5, 0, 7], [4, 8, 2]],
+            '5': [[1, 6, 7], [5, 0, 3], [4, 8, 2]],
+            '6': [[7, 1, 2], [4, 8, 5], [6, 3, 0]],
+            '7': [[0, 7, 2], [5, 6, 1], [3, 5, 8]]
+        }
+        puzzle = puzzles.get(puzzle_level)
+        print(f"Level {puzzle_level} puzzle selected! Please select an algorithm to solve the puzzle. Input 1-3:\n")
+        algorithm_type = input("1: Uniform Cost Search\n2: A* with the Misplace Tile heuristic\n3: A* with the Manhattan Distance heuristic\n")
+    elif puzzle_type == '2':
+        print("Custom puzzle selected!\n")
+        puzzle_temp = input("Please enter all 9 digits of your custom puzzle separated by spaces, e.g. 1 2 3 4 5 6 7 8 0\n")
+        # convert input into list of integers
+        puzzle_list = list(map(int, puzzle_temp.split(" ")))
+        # put into puzzle board format
+        puzzle = [puzzle_list[i:i+3] for i in range(0, 9, 3)]
+
+        print("Please select an algorithm to solve the puzzle. Input 1-3:\n")
+        algorithm_type = input("1: Uniform Cost Search \n2: A* with the Misplace Tile heuristic \n3: A* with the Manhattan Distance heuristic\n")
+
+    problem_puzzle = Puzzle_Board(puzzle)
+    solution = general_search(problem_puzzle, algorithm_type)
+
+    if solution != "failure":
+        print("Goal reached!")
+        solution.puzzle.print_board()
+    else:
+        print("No solution found.")
 
 if __name__ == "__main__":
     main()
