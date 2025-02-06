@@ -132,21 +132,7 @@ def manhattan_distance(board):
     return distance
 
 # find children nodes
-def get_children(puzzle):
-    # children = []
-    
-    # for i in range(4):
-    #     if puzzle.blank_up():
-    #         children.append(puzzle.blank_up())
-    #     if puzzle.blank_down():
-    #         children.append(puzzle.blank_down())
-    #     if puzzle.blank_left():
-    #         children.append(puzzle.blank_left())
-    #     if puzzle.blank_right():
-    #         children.append(puzzle.blank_right())
-    
-    # return children
-    
+def get_children(puzzle):    
     children = []
     moves = [puzzle.blank_up(), puzzle.blank_down(), puzzle.blank_left(), puzzle.blank_right()]
     for move in moves:
