@@ -124,10 +124,17 @@ def manhattan_distance(board):
 
     distance = 0
 
+    # iterate through all spots in the board
     for i in range(3):
         for j in range(3):
-            if board[i][j] != 0:
-                distance += (abs(goal_state[i][0] - board[j][0]) + abs(goal_state[i][1] - board[j][1]))
+            value = board[i][j]
+            if value != 0:
+                # find the matching value in the goal board
+                for goal_i in range(3):
+                    for goal_j in range(3):
+                        if goal_state[goal_i][goal_j] == value:
+                            # manhattan distance
+                            distance += abs(goal_i - i) + abs(goal_j - j)
 
     return distance
 
@@ -164,7 +171,7 @@ def general_search(problem, algorithm):
         # if problem.goal_test(node.state) succeeds then return node
         if curr_node.puzzle.is_goal_state():
             return curr_node
-        
+
         # nodes = QUEUEING FUNCTION(nodes, EXPAND(node, problem.OPERATORS))
         children_nodes = get_children(curr_node.puzzle)
         for child in children_nodes:
@@ -174,9 +181,9 @@ def general_search(problem, algorithm):
             if algorithm == '1':
                     h_n = 0 # h(n) = 0 for UCS
             elif algorithm == '2':
-                h_n = misplaced_tile(problem.board) # set h(n) for A star with misplaced tile heuristic
+                h_n = misplaced_tile(child.board) # set h(n) for A star with misplaced tile heuristic
             elif algorithm == '3':
-                h_n = manhattan_distance(problem.board) # set h(n) for A star with manhattan distance heuristic
+                h_n = manhattan_distance(child.board) # set h(n) for A star with manhattan distance heuristic
             child_node = Node(child, g_n, h_n)
             # push child node to pq
             heapq.heappush(pq, child_node)
@@ -197,7 +204,7 @@ def main():
             '4': [[1, 3, 6], [5, 0, 7], [4, 8, 2]],
             '5': [[1, 6, 7], [5, 0, 3], [4, 8, 2]],
             '6': [[7, 1, 2], [4, 8, 5], [6, 3, 0]],
-            '7': [[0, 7, 2], [5, 6, 1], [3, 5, 8]]
+            '7': [[0, 7, 2], [4, 6, 1], [3, 5, 8]]
         }
         puzzle = puzzles.get(puzzle_level)
         print(f"Level {puzzle_level} puzzle selected! Please select an algorithm to solve the puzzle. Input 1-3:\n")
