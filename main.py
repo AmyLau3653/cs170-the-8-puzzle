@@ -159,6 +159,8 @@ def general_search(problem, algorithm):
     nodes_expanded = 0  
     max_size_of_queue = 0  
 
+    # track visited nodes
+    visited = set()
 
     # nodes = make_queue(make_node(problem.initial_state))
     if algorithm == '1':
@@ -182,6 +184,16 @@ def general_search(problem, algorithm):
         # node = remove_front(nodes)
         # source: https://docs.python.org/3/library/heapq.html 
         curr_node = heapq.heappop(pq)
+
+        # go from list to tuple of tuples [[1, 2, 3], [4, 5, 6], [7, 8, 0]] to ((1, 2, 3), (4, 5, 6), (7, 8, 0)) so it can be added to visited
+        stored_board = tuple(map(tuple, curr_node.puzzle.board))
+
+        # if visited before, skip the node
+        if stored_board in visited:
+            continue
+
+        # add node to visited
+        visited.add(stored_board)
 
         # increment nodes expanded to count them
         nodes_expanded += 1
