@@ -202,6 +202,8 @@ def general_search(problem, algorithm):
         print(f"g(n) = {curr_node.g_n}")
         print(f"h(n) = {curr_node.h_n}")
         curr_node.puzzle.print_board()
+        # add a new line to make it easier to read
+        print()
 
         # if problem.goal_test(node.state) succeeds then return node
         if curr_node.puzzle.is_goal_state():
