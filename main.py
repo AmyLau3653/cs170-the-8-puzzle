@@ -198,6 +198,11 @@ def general_search(problem, algorithm):
         # increment nodes expanded to count them
         nodes_expanded += 1
 
+        # add print statements for traceback
+        print(f"g(n) = {curr_node.g_n}")
+        print(f"h(n) = {curr_node.h_n}")
+        curr_node.puzzle.print_board()
+
         # if problem.goal_test(node.state) succeeds then return node
         if curr_node.puzzle.is_goal_state():
             # get findings (required for the written report)
