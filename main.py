@@ -91,6 +91,7 @@ class Node:
         self.h_n = h_n # heuristic cost
         self.f_n = g_n + h_n  # total cost
 
+    # comparison function for the priority queue, source: https://stackoverflow.com/questions/407734/a-generic-priority-queue-for-python
     def __lt__(self, other):
         return self.f_n < other.f_n
 
@@ -106,6 +107,7 @@ def misplaced_tile(board):
     diff_matrix = goal_state_np != board_np
 
     # not inlcuding blank tile
+    # source: https://davidhamann.de/2018/01/26/numpy-count-elementwise-matches/
     diff_matrix[board_np == 0] = False
 
     # sum the True's to get number of misplaced tiles
@@ -125,6 +127,7 @@ def manhattan_distance(board):
     distance = 0
 
     # iterate through all spots in the board
+    # inspired by this source: https://www.geeksforgeeks.org/maximum-manhattan-distance-between-a-distinct-pair-from-n-coordinates/, but later revised because it was incorrect
     for i in range(3):
         for j in range(3):
             value = board[i][j]
@@ -177,6 +180,7 @@ def general_search(problem, algorithm):
             return "failure"
         
         # node = remove_front(nodes)
+        # source: https://docs.python.org/3/library/heapq.html 
         curr_node = heapq.heappop(pq)
 
         # increment nodes expanded to count them
@@ -247,7 +251,7 @@ def main():
     elif puzzle_type == '2':
         print("Custom puzzle selected!\n")
         puzzle_temp = input("Please enter all 9 digits of your custom puzzle separated by spaces, e.g. 1 2 3 4 5 6 7 8 0\n")
-        # convert input into list of integers
+        # convert input into list of integers, source: https://www.geeksforgeeks.org/python-converting-all-strings-in-list-to-integers/
         puzzle_list = list(map(int, puzzle_temp.split(" ")))
         # put into puzzle board format
         puzzle = [puzzle_list[i:i+3] for i in range(0, 9, 3)]
