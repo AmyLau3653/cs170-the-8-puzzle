@@ -149,6 +149,14 @@ def get_children(puzzle):
 
 # general search following pseudocode from class
 def general_search(problem, algorithm):
+    # time the run time
+    start_time = time.time()
+
+    # track nodes expanded and size of queue
+    nodes_expanded = 0  
+    max_size_of_queue = 0  
+
+
     # nodes = make_queue(make_node(problem.initial_state))
     if algorithm == '1':
         h_n = 0 # h(n) = 0 for UCS
@@ -161,15 +169,42 @@ def general_search(problem, algorithm):
     pq = [initial_node]
 
     while pq:
+        # get max size of the queue
+        max_size_of_queue = max(max_size_of_queue, len(pq))
+
         # if empty(nodes) then return "failure"
         if len(pq) == 0:
             return "failure"
         
-        #node = remove_front(nodes)
+        # node = remove_front(nodes)
         curr_node = heapq.heappop(pq)
+
+        # increment nodes expanded to count them
+        nodes_expanded += 1
 
         # if problem.goal_test(node.state) succeeds then return node
         if curr_node.puzzle.is_goal_state():
+            # get findings (required for the written report)
+            end_time = time.time()
+            cpu_time = end_time - start_time
+            solution_depth = curr_node.g_n 
+
+            # change time to min, sec, and ms for a more detailed analysis of run time
+            # floor division for whole number minutes (source: https://www.geeksforgeeks.org/floor-division-in-python/)
+            minutes = int(cpu_time // 60)
+            # mod to get seconds
+            seconds = int(cpu_time % 60)
+            # convert to ms, then mod 1000 to get remaining ms
+            milliseconds = int((cpu_time * 1000) % 1000)
+
+            # print findings
+            print(f"nodes expanded: {nodes_expanded}")
+            print(f"solution depth: {solution_depth}")
+            print(f"max size of queue: {max_size_of_queue}")
+            print(f"cpu time: {cpu_time:.2f} seconds")
+            print(f"cpu time: {minutes} min {seconds} sec {milliseconds} ms")
+            print(f"nodes in frontier when solution was found: {len(pq)}")
+
             return curr_node
 
         # nodes = QUEUEING FUNCTION(nodes, EXPAND(node, problem.OPERATORS))
